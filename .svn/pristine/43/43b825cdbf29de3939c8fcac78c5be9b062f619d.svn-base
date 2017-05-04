@@ -1,0 +1,43 @@
+package bug.frontstage.program.service.imp;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import bug.frontstage.program.dao.CreateProgram;
+import bug.frontstage.program.service.InsertProduceService;
+
+
+@Service("InsertProduceServiceimp")
+public class InsertProduceServiceimp    implements InsertProduceService{
+
+	@Autowired
+	private CreateProgram  createProgram;
+	
+	
+	//产品表
+	@Override
+	public void insertProduce(String name,int pid) {
+		createProgram.insertProduce(name,pid);		
+	}
+
+	//获取产品表Id
+	public  int getProduceId (String name){
+	return 	createProgram.getProduceId(name);
+	}
+	
+	//项目——产品表
+	public  void  insertProgramProduce(int mid,int eid){
+		createProgram.insertProgramProduce(mid, eid);
+		
+	}
+	
+	//查询项目——产品表的所有产品名
+	public List<Map<String,Object >>  selectAllProduce(int pid ){
+	List<Map<String,Object>> list =  createProgram.selectAllProduce(pid);
+	return list;
+	}
+	
+}

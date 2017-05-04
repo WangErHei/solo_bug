@@ -1,0 +1,339 @@
+package bug.frontstage.bug_info.dao;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+public class Bug {
+
+	@Autowired(required=false)
+    @Resource(name = "jdbcTemplate")  
+	private JdbcTemplate jdbcTemplate;
+
+	public JdbcTemplate getJdbcTemplate() {
+		return jdbcTemplate;
+	}
+
+	public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
+		this.jdbcTemplate = jdbcTemplate;
+	}
+
+	//查询产品
+		public List<Map<String,Object>> selectAllProduce(int pid){
+			List<Map<String,Object>>  list = jdbcTemplate.queryForList("select produce_id  from  program_produce  where  program_id=?",new Object[]{pid});
+			List<Map<String, Object>> list1 =new ArrayList<>();
+			for(int i=0;i<list.size();i++){
+				Object ob =list.get(i).get("produce_id");
+				int  prid = Integer.parseInt(ob.toString());
+				List<Map<String,Object>> produce = jdbcTemplate.queryForList(	"select produce_name  from  produce  where produce_id='"+prid+"' ");
+			    String   produce_name = (String)  produce.get(0).get("produce_name");
+			    Map<String ,Object> map =new HashMap<String ,Object>();
+			    map.put("produce_name", produce_name);
+			    map.put("produce_id", prid);
+			    list1.add(map);
+			}	
+			return list1;
+		}
+	
+		//查询所有BUg
+	public   List<Map<String,Object>>  allBug(int pid,String currpage,String everycount){
+
+		List<Map<String, Object>> allbug =new ArrayList<>();
+			String end = Integer.parseInt(currpage)*Integer.parseInt(everycount)+ "";
+			String begin = (Integer.parseInt(currpage)-1)*Integer.parseInt(everycount)+1+"";	
+			allbug = jdbcTemplate.queryForList("select  *  from(select rownum as num,bug_id,bug_type,bug_title,bug_state,bug_prop,bug_maker,bug_signer,bug_plan_date,bug_lasted_date,bug_repair_date,bug_create_date,bug_fu  from (select * from bug order by bug_create_date desc )  where program_id='"+pid+"'and  rownum<='"+end+"') where num>='"+begin+"'");
+			
+		return allbug;
+	}	
+		
+	
+	//Search功能
+		public   List<Map<String,Object>>  search(int pid,String currpage,String everycount,String content){
+
+			List<Map<String, Object>> allbug =new ArrayList<>();
+				String end = Integer.parseInt(currpage)*Integer.parseInt(everycount)+ "";
+				String begin = (Integer.parseInt(currpage)-1)*Integer.parseInt(everycount)+1+"";	
+				allbug = jdbcTemplate.queryForList("select  *  from(select rownum as num,bug_id,bug_type,bug_title,bug_state,bug_prop,bug_maker,bug_signer,bug_plan_date,bug_lasted_date,bug_repair_date,bug_create_date  from (select * from bug order by bug_create_date desc )  where program_id='"+pid+"'and (produce_name  like '%"+content+"%'   or  bug_title  like '%"+content+"%')  and  rownum<='"+end+"') where num>='"+begin+"'      ");
+				
+			return allbug;
+		}	
+	
+		//模糊查询
+		public  int searchSum(int pid,String content){
+			List<Map<String, Object>>	allnum = jdbcTemplate.queryForList("select   bug_id   from bug  where program_id='"+pid+"'and (produce_name like '%"+content+"%'  or  bug_title  like  '%"+content+"%' )");
+		   int search = allnum.size();
+		   return search;
+		}
+		
+		
+	
+	public int allBugNumber(int pid)	{
+		int allnumber=0;
+		List<Map<String,Object>>  list = jdbcTemplate.queryForList("select bug_id  from bug  where  program_id=?",new Object[]{pid});
+		allnumber =  list.size();
+		return allnumber;
+}
+	
+	
+	//项目时间
+	public String   day(int pid){
+		List<Map<String,Object>>  list = jdbcTemplate.queryForList("select program_date  from program  where  program_id=?",new Object[]{pid});
+		Object ob = list.get(0).get("program_date");
+		String program  = ob.toString();
+		String program_date = (String) program.subSequence(0, program.length()-2);
+		return program_date;
+	}
+	
+	
+	
+	
+	
+  //查询活动Bug
+	public   List<Map<String,Object>>  activeBug(int pid,String currpage,String everycount){	
+		List<Map<String, Object>> activeBug =new ArrayList<>();
+			String end = Integer.parseInt(currpage)*Integer.parseInt(everycount)+ "";
+			String begin = (Integer.parseInt(currpage)-1)*Integer.parseInt(everycount)+1+"";	
+			activeBug = jdbcTemplate.queryForList(	"select  *  from  (	select rownum as num,bug_id,bug_type,bug_title,bug_state,bug_prop,bug_maker,bug_signer,bug_plan_date,bug_lasted_date,bug_repair_date,bug_create_date,bug_fu,bug_toman    from(select * from bug order by bug_create_date desc )  where  program_id='"+pid+"'   and ( bug_state='未解决'  or  bug_state='不是错误' or  bug_state='待审核'  or bug_state='设计如此'  or bug_state='不同意建议' or bug_state='延期解决'  ) and  rownum<='"+end+"') where num>='"+begin+"'");			
+		return activeBug;
+	}	
+		
+	
+	public int activeBugNumber(int pid)	{
+		int number=0;
+		List<Map<String,Object>>  list = jdbcTemplate.queryForList("select bug_id  from bug  where  program_id=?  and   bug_state='未解决' ",new Object[]{pid});   
+	  number=list.size();
+		return number;
+}
+	
+	public int  activeBugAllNumber(int pid){
+		int number=0;
+		List<Map<String,Object>>  list = jdbcTemplate.queryForList("select bug_id  from bug  where  program_id=?  and  ( bug_state='未解决' or bug_state='不是错误'  or  bug_state='设计如此'  or  bug_state='不同意建议'  or  bug_state='延期解决'  or bug_state='待审核')  ",new Object[]{pid});   
+		number=list.size();
+			return number;
+	}
+	
+	
+	
+	
+	public int waitBugNumber(int pid)	{
+		int number=0;
+		List<Map<String,Object>>  list = jdbcTemplate.queryForList("select bug_id  from bug  where  program_id=?  and  bug_state='待审核' ",new Object[]{pid});
+	   number=list.size();
+		return number;
+}
+	
+	public int  refuseBugNumber(int pid)	{
+		int number=0;
+		List<Map<String,Object>>  list = jdbcTemplate.queryForList("select bug_id  from bug  where  program_id=?  and  (  bug_state='不是错误'  or bug_state='设计如此'  or bug_state='不同意建议' or bug_state='延期解决' )",new Object[]{pid});
+       number=list.size();
+		return number;
+}
+	
+	public int  doneBugNumber(int pid)	{
+		int number=0;
+		List<Map<String,Object>>  list = jdbcTemplate.queryForList("select bug_id  from bug  where  program_id=?  and  bug_state='已解决'   ",new Object[]{pid});
+	 number =   list.size();
+
+		return number;
+}
+	
+	public int  pushBugNumber(int pid)	{
+		int number=0;
+		List<Map<String,Object>>  list = jdbcTemplate.queryForList("select bug_id  from bug  where  program_id=?  and  bug_state='已延期' ",new Object[]{pid});
+	    number=list.size();
+		return number;
+}
+	
+	public int  closeBugNumber(int pid)	{
+		int number=0;
+		List<Map<String,Object>>  list = jdbcTemplate.queryForList("select bug_id  from bug  where  program_id=?  and  bug_state='已关闭' ",new Object[]{pid});
+		number=list.size();
+		return number;
+}
+	
+	
+	public  int  member(int  pid){
+		List<Map<String,Object>>  memer =  jdbcTemplate.queryForList("select  count(*) a from  program_buser where program_id='"+pid+"' ");
+		 Object ob = memer.get(0).get("a");
+	     return  Integer.parseInt(ob.toString());
+	}
+	
+	public  int produce(int pid ){
+		List<Map<String,Object>>  produce =  jdbcTemplate.queryForList("select  count(*) a from  program_produce  where program_id='"+pid+"' ");
+		Object ob = produce.get(0).get("a");
+	     return  Integer.parseInt(ob.toString());
+	}
+	
+	
+	public List<Map<String,Object>> notify(int pid){
+		List<Map<String,Object>>  notify =  jdbcTemplate.queryForList("select  *  from  notify  where program_id='"+pid+"' ");
+		return notify;
+		
+	}
+	//项目状态
+	public int  notState(int pid)	{
+		int number=0;
+		List<Map<String,Object>>  list = jdbcTemplate.queryForList("select bug_id  from bug  where  program_id=?  and  bug_type='缺陷'    ",new Object[]{pid});
+		number=list.size();
+		return number;
+}
+	
+	
+	public int  task(int pid)	{
+		int number=0;
+		List<Map<String,Object>>  list = jdbcTemplate.queryForList("select bug_id  from bug  where  program_id=?   and  bug_type='任务' ",new Object[]{pid});
+		number=list.size();
+		return number;
+}
+	
+	
+	public int  need(int pid)	{
+		int number=0;
+		List<Map<String,Object>>  list = jdbcTemplate.queryForList("select bug_id  from bug  where  program_id=?  and  bug_type='需求'  ",new Object[]{pid});
+		number=list.size();
+		return number;
+}	
+	
+	
+	
+	public int type1(int pid)	{
+		int number=0;
+		List<Map<String,Object>>  list = jdbcTemplate.queryForList("select bug_id  from bug  where  program_id=?   and  bug_prop='急'   ",new Object[]{pid});
+		number = list.size();
+		return number;
+}	
+	
+	
+	public int type2(int pid)	{
+		int number=0;
+		List<Map<String,Object>>  list = jdbcTemplate.queryForList("select bug_id  from bug  where  program_id=?   and  bug_prop='高'   ",new Object[]{pid});
+	  number=list.size();
+		return number;
+}	
+	
+	
+	public int type3(int pid)	{
+		int number=0;
+		List<Map<String,Object>>  list = jdbcTemplate.queryForList("select bug_id  from bug  where  program_id=?   and  bug_prop='中'",new Object[]{pid});
+	   number=list.size();
+		return number;
+}	
+	
+	public int type4(int pid)	{
+		int number=0;
+		List<Map<String,Object>>  list = jdbcTemplate.queryForList("select bug_id  from bug  where  program_id=?  and  bug_prop='低' ",new Object[]{pid});
+		number=list.size();
+		return number;
+}	
+	
+/**
+ *    bug筛选栏
+ */
+	//活动Bug：筛选条件
+		public String toStringActive(String type,String state,String prop,String maker){
+			String toType,toState,toProp,toMaker;
+			if(type.equals("全部")){toType = " ";}  else{toType = " bug_type = '" + type +"' and ";}
+			if(state.equals("全部活动")){
+				toState = " ";
+			}else if(state.equals("已拒绝")){
+				toState = " bug_state in('不是错误','延期解决','设计如此','不同意建议') and ";	
+			}else{toState = " bug_state = '" + state +"' and ";	}
+			if(prop.equals("全部")){toProp = " ";}  else{toProp = " bug_prop = '" + prop +"' and ";}
+			if(maker.equals("全部")){toMaker = " ";}  else{toMaker = " bug_toman = '" + maker +"' and ";}
+			
+			return toType+toState+toProp+toMaker;
+		}
+		//活动Bug：筛选
+		public List<Map<String,Object>> filterActiveBug(String type,String state,String prop,String maker,int pid,String currpage, String  everycount){
+			List<Map<String, Object>> list =new ArrayList<>();
+			String condition = toStringActive(type, state, prop, maker);
+			String end = Integer.parseInt(currpage)*Integer.parseInt(everycount)+ "";
+			String begin = (Integer.parseInt(currpage)-1)*Integer.parseInt(everycount)+1+"";	
+			list = jdbcTemplate.queryForList("select  *  from  (select rownum as num,bug_id,bug_type,bug_title,bug_state,bug_prop,bug_maker,bug_signer,bug_plan_date,bug_lasted_date,bug_repair_date,bug_create_date,bug_fu,bug_toman   from (select * from bug order by bug_create_date desc )  where " + condition + " program_id='"+pid+"'   and ( bug_state='未解决'  or  bug_state='不是错误' or  bug_state='待审核'  or bug_state='设计如此'  or bug_state='不同意建议' or bug_state='延期解决'  ) and  rownum<='"+end+"') where num>='"+begin+"'");			
+
+			return list;
+		}
+		//活动Bug：筛选后数量
+		public int countFilterActive(String type,String state,String prop,String maker,int pid){
+			List<Map<String, Object>> list =new ArrayList<>();
+			String  condition = toStringActive(type, state, prop, maker);
+			list = jdbcTemplate.queryForList("select *  from bug where "+condition+" program_id = "+ pid+" and (bug_state='未解决'  or  bug_state='已拒绝' or  bug_state='待审核')" );
+
+			return list.size();
+		}
+		//活动Bug：处理人列表
+		public List<Map<String,Object>> activeMaker(String type,String state,String prop,int pid){
+			List<Map<String, Object>> list =new ArrayList<>();
+			String  condition = toStringActive(type, state, prop, "全部");
+			list = jdbcTemplate.queryForList("select distinct bug_toman  from bug where "+condition+" program_id = "+ pid+" and ( bug_state='未解决'  or  bug_state='不是错误' or  bug_state='待审核'  or bug_state='设计如此'  or bug_state='不同意建议' or bug_state='延期解决'  ) and bug_toman <> '[未指定]'" );	
+			return list;			
+		}
+		
+		
+		
+		
+		
+	//所有Bug：筛选条件
+	public String toStringAll(String type,String state,String prop,String maker,String signer,String creater){
+		String toType,toState,toProp,toMaker,toSigner,toCreater;
+		if(type.equals("全部")){toType = " ";}  else{toType = " bug_type = '" + type +"' and ";}
+		if(state.equals("全部活动")){
+			toState = " ";
+		}else if(state.equals("已拒绝")){
+			toState = " bug_state in('不是错误','延期解决','设计如此','不同意建议') and ";	
+		}else{
+			toState = " bug_state = '" + state +"' and ";	
+			}
+		if(prop.equals("全部")){toProp = " ";}  else{toProp = " bug_prop = '" + prop +"' and ";}
+		if(maker.equals("全部")){toMaker = " ";}  else{toMaker = " bug_toman = '" + maker +"' and ";}
+		if(signer.equals("全部")){toSigner = " ";}  else{toSigner = " bug_signer = '" + signer +"' and ";}
+		if(creater.equals("全部")){toCreater = " ";}  else{toCreater = " bug_creator = '" + creater +"' and ";}
+		return toType+toState+toProp+toMaker+toSigner+toCreater;
+	}
+	//所有Bug：筛选
+	public List<Map<String,Object>> filterAllBug(String type,String state,String prop,String maker,String signer,String creater,int pid,String currpage, String  everycount){
+		List<Map<String, Object>> list =new ArrayList<>();
+		String condition = toStringAll(type, state, prop, maker, signer, creater);
+		String end = Integer.parseInt(currpage)*Integer.parseInt(everycount)+ "";
+		String begin = (Integer.parseInt(currpage)-1)*Integer.parseInt(everycount)+1+"";	
+		list = jdbcTemplate.queryForList("select  *  from(select rownum as num,bug_id,bug_type,bug_title,bug_state,bug_prop,bug_maker,bug_signer,bug_plan_date,bug_lasted_date,bug_repair_date,bug_create_date,bug_fu,bug_update,bug_toman  from (select * from bug order by bug_create_date desc )  where " + condition + " program_id='"+pid+"'and  rownum<='"+end+"') where num>='"+begin+"'      ");
+		
+		return list;
+	}
+	//所有Bug：筛选后数量
+	public int countFilterAll(String type,String state,String prop,String maker,String signer,String creater,int pid){
+		List<Map<String, Object>> list =new ArrayList<>();
+		String  condition = toStringAll(type, state, prop, maker, signer, creater);
+		list = jdbcTemplate.queryForList("select *  from bug where "+condition+" program_id = "+ pid );
+		return list.size();
+	}
+	//所有Bug：处理人列表
+	public List<Map<String,Object>> allMaker(String type,String state,String prop,String signer,String creater,int pid){
+		List<Map<String, Object>> list =new ArrayList<>();
+		String  condition = toStringAll(type, state, prop, "全部", signer, creater);
+		list = jdbcTemplate.queryForList("select distinct bug_toman  from bug where "+condition+" bug_toman <> '[未指定]' and program_id = "+ pid);	
+		return list;			
+	}
+	//所有Bug：分配人列表
+	public List<Map<String,Object>> allSigner(String type,String state,String prop,String maker,String creater,int pid){
+		List<Map<String, Object>> list =new ArrayList<>();
+		String  condition = toStringAll(type, state, prop, maker, "全部", creater);
+		list = jdbcTemplate.queryForList("select distinct bug_signer  from bug where "+condition+" program_id = "+ pid);	
+		return list;			
+	}
+	//所有Bug：创建人列表
+	public List<Map<String,Object>> allCreater(String type,String state,String prop,String maker,String signer,int pid){
+		List<Map<String, Object>> list =new ArrayList<>();
+		String  condition = toStringAll(type, state, prop, maker, signer, "全部");
+		list = jdbcTemplate.queryForList("select distinct bug_creator  from bug where "+condition+" program_id = "+ pid);	
+		return list;			
+	}
+	
+}

@@ -1,0 +1,21 @@
+
+ backstage --------------------  后台
+     
+	1. login ---------------- 登录
+	2. project_manage ------- 项目管理
+	3. user_manage ---------- 用户管理
+	
+ frontstage -------------------  前台
+	
+	1. login ---------------- 登录	 V
+	2. mytask --------------- 我的任务（包含：我的待办，分配给我，我的分配）
+	3. bug_info ------------- bug信息 （包含：活动bug，所有bug，bug统计）
+	4. notice_manage -------- 通知管理
+	5. personal_center ------ 个人中心 V
+	6. project_info --------- 项目概况 （我的项目，项目配置，发布通知，发布版本）
+	7. version_manage ------- 版本管理
+	
+    
+ interceptor -----------------  拦截器 V
+	
+ register --------------------  注册 V

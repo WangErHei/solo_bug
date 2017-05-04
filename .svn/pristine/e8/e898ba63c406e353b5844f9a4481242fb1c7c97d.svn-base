@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="      
+           http://www.springframework.org/schema/beans      
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd      
+           http://www.springframework.org/schema/context      
+           http://www.springframework.org/schema/context/spring-context-3.0.xsd  
+           http://www.springframework.org/schema/tx 
+           http://www.springframework.org/schema/tx/spring-tx-3.0.xsd   
+           http://www.springframework.org/schema/mvc      
+           http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+           http://www.springframework.org/schema/aop 
+           http://www.springframework.org/schema/aop/spring-aop-3.0.xsd" default-autowire="byName">
+   
+  <bean class="org.springframework.beans.factory.annotation.RequiredAnnotationBeanPostProcessor" /> 
+  <context:annotation-config /> 
+ <!--  扫描类包，将标注Spring注解的类自动转化Bean，同时完成Bean的注入 --> 
+ 
+  <context:component-scan base-package="bug.*.*.controller" /> 
+  <context:component-scan base-package="bug.*.controller" /> 
+  <context:component-scan base-package="bug.*.*.dao" /> 
+  <context:component-scan base-package="bug.*.*.service.imp" /> 
+    <context:component-scan base-package="bug.*.service.imp" /> 
+ 
+	<mvc:annotation-driven />
+  
+	 <bean id="dataSource"    
+        class="com.mchange.v2.c3p0.ComboPooledDataSource"    
+        destroy-method="close">    
+        <property name="driverClass" value="oracle.jdbc.driver.OracleDriver" />    
+        <property name="jdbcUrl" value="jdbc:oracle:thin:@139.129.205.118:1521:orcl" />           
+        <property name="user" value="solobug" />  
+        <property name="password" value="123456" />  
+        <property name="acquireIncrement" value="1" />  
+    <property name="acquireRetryAttempts" value="30" />  
+    <!-- 两次连接中间隔时间，单位毫秒。Default: 1000 -->  
+    <property name="acquireRetryDelay" value="1000" />  
+    <!-- 连接关闭时默认将所有未提交的操作回滚。Default: false -->  
+    <property name="autoCommitOnClose" value="false" />  
+    <property name="checkoutTimeout" value="10000" />  
+    <!-- 每60秒检查所有连接池中的空闲连接。Default: 0 -->  
+    <property name="idleConnectionTestPeriod" value="60" />  
+    <!-- 初始化时获取的连接数，取值应在minPoolSize与maxPoolSize之间。Default: 3 -->  
+    <property name="initialPoolSize" value="1" />  
+    <!-- 连接池中保留的最小连接数 -->  
+    <property name="minPoolSize" value="1" />  
+    <!-- 连接池中保留的最大连接数。Default: 15 -->  
+    <property name="maxPoolSize" value="30" />  
+    <!-- 最大空闲时间,60秒内未使用则连接被丢弃。若为0则永不丢弃。Default: 0 -->  
+    <property name="maxIdleTime" value="60" />  
+    <property name="automaticTestTable" value="scott.C3P0_TESTTABLE" />  
+    <property name="breakAfterAcquireFailure" value="false" />              
+    <property name="maxStatements" value="0" />   
+    <property name="maxStatementsPerConnection" value="0" />  
+    <property name="numHelperThreads" value="3" />          
+</bean>  
+
+   
+ <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+ <property name="dataSource">
+  <ref bean="dataSource" /> 
+  </property>
+  </bean>
+  
+  
+ <bean id="Login" class="bug.frontstage.login.dao.Login">
+  <property name="jdbcTemplate" ref="jdbcTemplate" /> 
+  </bean>
+ 
+   <bean id="Register" class="bug.register.dao.Register">
+  <property name="jdbcTemplate" ref="jdbcTemplate" /> 
+  </bean>
+  
+   <bean id="CreateProgram" class="bug.frontstage.program.dao.CreateProgram">
+  <property name="jdbcTemplate" ref="jdbcTemplate" /> 
+  </bean>
+  
+   <bean id="NoticeDao" class="bug.frontstage.notice_manage.dao.NoticeDao">
+  <property name="jdbcTemplate" ref="jdbcTemplate" /> 
+  </bean>
+  
+   <bean id="PersonalDao" class="bug.frontstage.personal_center.dao.PersonalDao">
+  <property name="jdbcTemplate" ref="jdbcTemplate" /> 
+  </bean>
+  
+  <bean id="MyTaskDao" class="bug.frontstage.mytask.dao.MyTaskDao">
+  <property name="jdbcTemplate" ref="jdbcTemplate" /> 
+  </bean>
+  
+  <bean id="SelectProgram" class="bug.frontstage.project_info.dao.SelectProgram">
+  <property name="jdbcTemplate" ref="jdbcTemplate" /> 
+  </bean>
+  
+  <bean id="Bug" class="bug.frontstage.bug_info.dao.Bug">
+  <property name="jdbcTemplate" ref="jdbcTemplate" /> 
+  </bean>
+  
+  <bean id="TestCaseDao" class="bug.frontstage.test_case.dao.TestCaseDao">
+  <property name="jdbcTemplate" ref="jdbcTemplate" /> 
+  </bean>
+  
+  
+ <!--文件上传  --> 
+  <bean id="multipartResolver"  
+    class="org.springframework.web.multipart.commons.CommonsMultipartResolver">  
+    <!-- 设置上传文件的最大尺寸为5MB -->  
+    <property name="maxUploadSize">  
+        <value>5242880</value>  
+    </property>  
+</bean>  
+  
+    <mvc:resources location="/css/"  mapping="/css/**" />
+	<mvc:resources location="/img/"   mapping="/img/**" />
+	<mvc:resources location="/js/"    mapping="/js/**" /> 
+	<mvc:resources location="/layer/"    mapping="/layer/**" /> 
+  <mvc:resources location="/file/"    mapping="/file/**" /> 
+<!--  配置拦截器, 多个拦截器,顺序执行  -->
+<!--  拦截器配置  -->
+ <mvc:interceptors>
+<mvc:interceptor>
+			<mvc:mapping path="/**"/>
+			<bean id="CommonInterceptor" class="bug.incepetor.CommonInterceptor">
+<!-- 				为MyInterceptor自定义拦截器中的allowUri属性赋值 -->
+		<property name="allowUrls">
+					<list>
+						<value>/tologin</value>
+						<value>/tologin1</value>
+						<value>/login</value>
+						<value>/register</value>
+						<value>/registerSub</value>
+						<value>/look</value>
+						<value>/lookup</value>
+					</list>	
+				</property>
+			</bean>
+		</mvc:interceptor>
+	</mvc:interceptors>
+
+
+<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+<property name="viewClass" value="org.springframework.web.servlet.view.JstlView"></property>
+  <property name="prefix" value="/WEB-INF/page/" /> 
+  <property name="suffix" value=".jsp" /> 
+  </bean>
+  </beans>
